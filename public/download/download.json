@@ -1,0 +1,33 @@
+[
+    {
+      "title": "AutoXjs_V7",
+      "url": "/app/app-v7-arm64-v8a-release2.apk",
+      "version": "1.0.0",
+      "changelog": "AutoJS",
+      "icon": "/images/idncar.jpg",
+      "locked": true
+    },
+    {
+      "title": "AutoSign.js",
+      "url": "/js/AutoSign.js",
+      "version": "1.0.0",
+      "changelog": "lxz专用",
+      "icon": "/images/ico-sign.png",
+      "locked": true
+    },
+       {
+      "title": "AutoSign2.js",
+      "url": "/js/AutoSign2.js",
+      "version": "1.0.0",
+      "changelog": "nothing",
+      "icon": "/images/ico-sign.png",
+      "locked": true
+    },   {
+      "title": "CTT专用cfg",
+      "url": "/zip/CttCfg_new.zip",
+      "version": "1.0.0",
+      "changelog": "CS2",
+      "icon": "/images/ico-sign.png",
+      "locked": true
+    }
+  ]
