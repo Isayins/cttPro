@@ -1,16 +1,25 @@
-import React from 'react';
-import { Button, Tag, Tooltip } from 'antd';
+// src/components/DownloadCardAntd.tsx
+import React, { useMemo } from 'react';
+import { Card, Row, Col, Avatar, Tag, Popover, Typography, Space, Button, Tooltip } from 'antd';
 import { DownloadOutlined, LockOutlined, LinkOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import { QRCode } from 'antd';
 import type { DownloadItem } from '../services/downloadService';
 
 export type { DownloadItem } from '../services/downloadService';
 
+const { Paragraph, Text } = Typography;
+
 type Props = DownloadItem & {
   onLockedClick?: () => void;
+  badgeText?: string;
 };
 
-export default function DownloadBlockSmall({
+/**
+ * Ant Design 风格下载卡片
+ * - 左侧信息列，右侧二维码（固定宽），底部操作按钮
+ * - 使用 Popover 显示放大二维码（hover / click）
+ */
+export default function DownloadCardAntd({
   title,
   version,
   changelog,
@@ -19,88 +28,120 @@ export default function DownloadBlockSmall({
   locked,
   size,
   onLockedClick,
+  badgeText,
 }: Props) {
-  const verifyUrl = `https://idncar.com/#/verify?resource=${encodeURIComponent(url)}`;
+  const safeUrl = url ?? '';
+  const verifyUrl = useMemo(() => `https://idncar.com/#/verify?resource=${encodeURIComponent(safeUrl)}`, [safeUrl]);
+
+  const qrSmall = 100;
+  const qrLarge = 220;
 
   return (
-    <div className="w-full bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-lg transition duration-300">
-      <div className="p-4 grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
-        {/* 左侧信息 */}
-        <div className="flex items-start gap-3 md:col-span-2">
-          <img
-            src={icon || '/images/idncar.jpg'}
-            alt={title}
-            className="w-14 h-14 rounded-xl object-cover shadow-sm"
-          />
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
-              <h3 className="text-lg font-semibold text-gray-900 truncate">{title}</h3>
-              <Tooltip title="更多信息">
-                <InfoCircleOutlined className="text-gray-400 text-xs" />
-              </Tooltip>
-            </div>
-            <div className="mt-0.5 text-xs text-gray-500">
-              版本: {version || '未知'} {size && `· 大小: ${size}`}
-            </div>
-            <div className="mt-1">
-              {locked ? (
-                <Tag icon={<LockOutlined />} color="warning" className="rounded-full px-1 py-0.5 text-xs">
-                  需验证码
-                </Tag>
-              ) : (
-                <Tag color="processing" className="rounded-full px-1 py-0.5 text-xs">
-                  直接下载
-                </Tag>
-              )}
-            </div>
-
-            {changelog && (
-              <div className="mt-2 text-xs text-gray-600 bg-gray-50 rounded-lg p-2 max-h-20 overflow-y-auto leading-relaxed">
-                {changelog}
+    <Card
+      hoverable
+      style={{
+        borderRadius: 14,
+        overflow: 'visible',
+        boxShadow: '0 6px 20px rgba(16,24,40,0.04)',
+      }}
+      bodyStyle={{ padding: 16 }}
+    >
+      <Row gutter={[16, 12]} align="middle">
+        {/* 左侧信息（伸缩） */}
+        <Col xs={24} sm={18} style={{ minWidth: 0 }}>
+          <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+            <Avatar
+              src={icon || '/images/idncar.jpg'}
+              shape="square"
+              size={56}
+              style={{ borderRadius: 12, boxShadow: '0 6px 18px rgba(0,0,0,0.04)' }}
+            />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Text strong style={{ fontSize: 16, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={title}>
+                  {title}
+                </Text>
+                <Tooltip title="更多信息">
+                  <InfoCircleOutlined style={{ color: '#9CA3AF' }} />
+                </Tooltip>
+                {badgeText && <Tag color="magenta" style={{ marginLeft: 8 }}>{badgeText}</Tag>}
               </div>
-            )}
+
+              <div style={{ marginTop: 6, display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+                <Text type="secondary" style={{ fontSize: 12 }}>版本: {version ?? '未知'}</Text>
+                {size && <Text type="secondary" style={{ fontSize: 12 }}>· 大小: {size}</Text>}
+                {locked ? (
+                  <Tag icon={<LockOutlined />} color="warning" style={{ marginLeft: 4 }}>需验证码</Tag>
+                ) : (
+                  <Tag color="processing" style={{ marginLeft: 4 }}>直接下载</Tag>
+                )}
+              </div>
+
+              <div style={{ marginTop: 10 }}>
+                {changelog ? (
+                  <Paragraph
+                    ellipsis={{ rows: 2, expandable: true, symbol: '更多' }}
+                    style={{ margin: 0, background: '#FAFBFC', padding: 10, borderRadius: 8 }}
+                  >
+                    {changelog}
+                  </Paragraph>
+                ) : (
+                  <div style={{ color: '#9CA3AF', fontSize: 13 }}>暂无更新日志</div>
+                )}
+              </div>
+            </div>
           </div>
-        </div>
+        </Col>
 
-        {/* 右侧二维码 */}
-        <div className="flex flex-col items-center justify-center gap-1">
-          <QRCode value={verifyUrl} size={140} />
-          <div className="text-[10px] text-gray-400">手机扫码下载</div>
-        </div>
-      </div>
+        {/* 右侧二维码（固定列） */}
+        <Col xs={24} sm={6} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+          <div style={{ textAlign: 'center' }}>
+            <Popover
+              content={
+                <div style={{ padding: 8, background: '#fff', borderRadius: 12 }}>
+                  <QRCode value={verifyUrl ?? ''} size={qrLarge} />
+                </div>
+              }
+              trigger={['hover', 'click']}
+              overlayStyle={{ padding: 0 }}
+              mouseEnterDelay={0.12}
+              mouseLeaveDelay={0.12}
+            >
+              <div style={{ display: 'inline-block', background: '#fff', padding: 6, borderRadius: 10, boxShadow: '0 8px 24px rgba(2,6,23,0.06)' }}>
+                <QRCode value={verifyUrl ?? ''} size={qrSmall} />
+              </div>
+            </Popover>
+            <div style={{ marginTop: 6, fontSize: 12, color: '#9CA3AF' }}>手机扫码下载</div>
+          </div>
+        </Col>
 
-      {/* 底部按钮 */}
-      <div className="px-4 pb-4">
-        <div className="flex flex-col sm:flex-row gap-2">
-          {locked ? (
-            <Button
-              type="primary"
-              icon={<LockOutlined />}
-              onClick={onLockedClick}
-              className="flex-1 rounded-lg"
-            >
-              输入验证码下载
-            </Button>
-          ) : (
-            <Button
-              type="primary"
-              icon={<DownloadOutlined />}
-              href={url}
-              className="flex-1 rounded-lg"
-            >
-              直接下载
-            </Button>
-          )}
-          <Button
-            href={url}
-            target="_blank"
-            icon={<LinkOutlined />}
-            className="rounded-lg"
-          >
-            直链
-          </Button>
-        </div>
-      </div>
-    </div>
+        {/* 底部按钮区域（占据整行） */}
+        <Col span={24}>
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+            <Space style={{ flex: 1 }}>
+              {locked ? (
+                <Button type="primary" icon={<LockOutlined />} onClick={onLockedClick} style={{ minWidth: 160 }}>
+                  输入验证码下载
+                </Button>
+              ) : (
+                <Button type="primary" icon={<DownloadOutlined />} href={safeUrl} target="_blank" style={{ minWidth: 160 }}>
+                  直接下载
+                </Button>
+              )}
+
+              <Button icon={<LinkOutlined />} href={safeUrl} target="_blank">
+                直链
+              </Button>
+            </Space>
+
+            {/* 可在右侧放置次要操作 */}
+            <div style={{ marginLeft: 'auto' }}>
+              {/* 示例：放一个小操作按钮 */}
+              {/* <Button size="small">帮助</Button> */}
+            </div>
+          </div>
+        </Col>
+      </Row>
+    </Card>
   );
 }
